@@ -1,0 +1,39 @@
+version: '3'
+services:
+  mariadb:
+    image: mariadb
+    container_name: "mariadb.rede"
+    environment:
+      - MYSQL_ROOT_PASSWORD=rede
+      - MYSQL_DATABASE=rede
+      - MYSQL_USER=rede
+      - MYSQL_PASSWORD=rede
+    volumes:
+      - ../data/mysql:/var/lib/mysql:z
+    ports:
+      - "3306:3306"
+
+  php:
+    image: userede/woocommerce
+    container_name: "local.rede"
+    links:
+      - mariadb
+    depends_on:
+      - mariadb
+    ports:
+      - "80:80"
+    volumes:
+      # Sessões do PHP
+      - ../data/session:/var/lib/php/session:z
+
+      # O próprio WordPress
+      - ../platform/wordpress:/var/www/html/userede/platform:z
+
+      # Uploads do WordPress
+      - ../platform/wp-content/uploads:/var/www/html/userede/platform/wp-content/uploads:z
+
+      # Plugins do WordPress
+      - ../platform/wp-content/plugins:/var/www/html/userede/platform/wp-content/plugins:z
+
+      # Temas do WordPress
+      - ../platform/wp-content/themes:/var/www/html/userede/platform/wp-content/themes:z

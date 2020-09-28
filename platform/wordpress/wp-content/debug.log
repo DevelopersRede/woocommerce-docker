@@ -1,0 +1,10 @@
+[25-Sep-2020 14:35:44 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function mysql_connect() in /var/www/html/userede/platform/wp-includes/wp-db.php:1667
+Stack trace:
+#0 /var/www/html/userede/platform/wp-includes/wp-db.php(632): wpdb->db_connect()
+#1 /var/www/html/userede/platform/wp-includes/load.php(482): wpdb->__construct('rede', 'rede', 'rede', 'mariadb')
+#2 /var/www/html/userede/platform/wp-settings.php(124): require_wp_db()
+#3 /var/www/html/userede/platform/wp-config.php(91): require_once('/var/www/html/u...')
+#4 /var/www/html/userede/platform/wp-load.php(37): require_once('/var/www/html/u...')
+#5 /var/www/html/userede/platform/wp-admin/install.php(36): require_once('/var/www/html/u...')
+#6 {main}
+  thrown in /var/www/html/userede/platform/wp-includes/wp-db.php on line 1667

@@ -1,0 +1,43 @@
+#!/bin/bash
+
+base="/var/www/html/userede/platform/wp-content/plugins"
+
+error()
+{
+	echo -e "\e[91mAlguma coisa aconteceu. Verifique.\e[39m">&2
+}
+
+run_rede()
+{
+	php-fpm -D && nginx
+}
+
+run()
+{
+	# Instala ou atualiza as dependências
+	for composer in `ls $base`; do
+		if [ -f "$base/$composer/composer.json" ]; then
+		    command="install"
+
+			echo -e "Foi encontrado o arquivo '\e[32m$base/$composer/composer.json'\e[39m"
+
+			if [ -f "$base/$composer/composer.lock" ]; then
+			    command="update"
+			fi
+
+			echo -e "\e[32mvamos rodar um 'composer $command'...\e[39m"
+
+			composer --working-dir=$base/$composer $command
+
+			if [ $? -ne 0 ]; then
+				error
+
+				exit 1
+			fi
+		fi
+	done
+
+	run_rede
+}
+
+run

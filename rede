@@ -1,0 +1,148 @@
+#!/bin/bash
+
+command="$1"
+argument="$2"
+
+year=$(date +"%Y")
+tag=$(date +"%m.%d")
+registry=userede
+image=woocommerce
+
+using() {
+  echo
+  echo "Utilização:"
+  echo
+  echo "$0 update	[plugins] Para atualizar os plugins"
+  echo "$0 update [core]    Para atualizar o core"
+  echo "$0 update [all]     Para atualizar tudo"
+  echo "$0 start            Para inicializar"
+  echo "$0 build            Para construir a imagem"
+  echo "$0 push             Para fazer push da imagem"
+  echo
+}
+
+update_core() {
+  docker exec --user=nginx -it local.rede wp core update
+}
+
+update_plugins() {
+  docker exec --user=nginx -it local.rede wp plugin update --all
+}
+
+update_all() {
+  update_core
+  update_plugins
+}
+
+error() {
+  echo
+  echo -e "\e[91mAlguma coisa aconteceu. Verifique.\e[39m" >&2
+  echo
+}
+
+build() {
+  echo
+  echo "Construindo a imagem $registry/$image:$tag."
+  echo
+  echo -e "\e[32mIsso pode demorar algum tempo...\e[39m"
+  echo
+
+  docker build -t $registry/$image:latest ./scripts
+
+  if [ $? -ne 0 ]; then
+    error
+
+    exit 1
+  fi
+
+  docker tag $registry/$image:latest $registry/$image:$tag
+
+  if [ $? -ne 0 ]; then
+    error
+
+    exit 1
+  fi
+
+  echo
+  echo -e "\e[32mImagem construída com sucesso.\e[39m"
+  echo
+}
+
+push() {
+  if [[ "$(docker images -q $registry/$image:$tag 2>/dev/null)" == "" ]]; then
+    echo
+    echo -e "\e[91mA imagem $registry/$image:$tag não existe.\e[39m"
+
+    build
+  fi
+
+  echo
+  echo "Enviando a imagem $image:$tag para $registry"
+  echo
+  echo -e "\e[32mIsso pode demorar algum tempo\e[39m"
+  echo
+
+  docker push $registry/$image:$tag
+
+  if [ $? -ne 0 ]; then
+    error
+
+    exit 1
+  fi
+}
+
+start() {
+  docker-compose -f scripts/docker-compose.yml up
+
+  if [ $? -ne 0 ]; then
+    error
+
+    exit 1
+  fi
+}
+
+if [[ -z $command ]]; then
+  using
+else
+  case $command in
+  help)
+    using
+    ;;
+  start)
+    start
+    ;;
+  build)
+    build
+    ;;
+  push)
+    push
+    ;;
+  update)
+    if [[ -z $argument ]]; then
+      update_all
+    else
+      case $argument in
+      help)
+        using
+        ;;
+      all)
+        update_all
+        ;;
+      core)
+        update_core
+        ;;
+      plugins)
+        update_plugins
+        ;;
+      *)
+        using
+        ;;
+      esac
+    fi
+
+    ;;
+  *)
+    using
+    ;;
+  esac
+fi
